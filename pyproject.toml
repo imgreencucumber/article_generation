@@ -6,6 +6,9 @@ dependencies = [
     "selenium>=4.29.0",
     "webdriver-manager>=4.0.2",
     "pyyaml>=6.0.2",
+    "yandex-cloud-ml-sdk>=0.4.2",
+    "numpy>=2.2.4",
+    "scipy>=1.15.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

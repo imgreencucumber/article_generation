@@ -21,7 +21,7 @@ def main():
 
     sdk = YCloudML(
         folder_id="b1gg1kh7b3mtup23kjbd",
-        auth="t1.9euelZqXjZGYzpuUx8eclZydjJKXz-3rnpWalZKaksaezc-alpmdzsqem4rl8_djPg5B-e8XGkh7_N3z9yNtC0H57xcaSHv8zef1656VmpnKi5KTncyejsmLm4vPm52J7_zN5_XrnpWazcfHnYqUm5TJkMqWzZWUi4zv_cXrnpWamcqLkpOdzJ6OyYubi8-bnYk.wwUvTghk8oN_a-xf-dUA7qFw-erOsm21LVGt6FtAtWK8rXNImM4aFDHQy5RlAQKX-ajaHoRRAIuQekuafg2KCg",
+        auth="AQVNwg5-e736XnSpAvHuiVvIAJJQlBoqb0t1D1Jb",
     )
 
     query_model = sdk.models.text_embeddings("query")

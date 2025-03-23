@@ -9,6 +9,8 @@ dependencies = [
     "yandex-cloud-ml-sdk>=0.4.2",
     "numpy>=2.2.4",
     "scipy>=1.15.2",
+    "psycopg2-binary>=2.9.10",
+    "qdrant-client>=1.13.3",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

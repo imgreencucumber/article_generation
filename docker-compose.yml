@@ -1,0 +1,42 @@
+services:
+  db:
+    container_name: postgres
+    image: postgres:16-alpine
+    command: postgres -c work_mem=5000MB -c maintenance_work_mem=5000MB -c max_wal_size=10GB -c max_parallel_workers=6
+    shm_size: 1g
+    env_file:
+      - db.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "${POSTGRES_DB}" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    ports:
+      - "5432:5432"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "30m"
+        max-file: "4"
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - ./volumes/qdrant:/qdrant/storage
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

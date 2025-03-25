@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready", "-d", "${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready", "-d", "${POSTGRES_DB}"]
       interval: 30s
       timeout: 60s
       retries: 5
@@ -21,6 +21,7 @@ services:
       options:
         max-size: "30m"
         max-file: "4"
+
   qdrant:
     image: qdrant/qdrant:latest
     container_name: qdrant
@@ -29,6 +30,24 @@ services:
     volumes:
       - ./volumes/qdrant:/qdrant/storage
     restart: unless-stopped
+
+  app:
+    container_name: article_generator
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    environment:
+      - POSTGRES_HOST=db
+      - QDRANT_HOST=qdrant
+    tty: true
+    stdin_open: true
 
 volumes:
   postgres_data:

@@ -1,14 +1,12 @@
-# Используем официальный образ Python как базовый
 FROM python:3.12.9
 
-# Устанавливаем рабочую директорию внутри контейнера
 WORKDIR /app
 
-# Копируем все файлы проекта в рабочую директорию контейнера
-COPY . .
+# Установка зависимостей
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Устанавливаем зависимости
-RUN pip install --no-cache-dir -r requirements.lock
+# Копирование кода
+COPY main.py .
 
-# Указываем команду для запуска приложения
-CMD ["python", "get_embeddings.py"]
+CMD ["python", "main.py"]

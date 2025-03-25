@@ -1,21 +1,21 @@
+import os
 import psycopg2
 from yandex_cloud_ml_sdk import YCloudML
 from qdrant_client import QdrantClient
 
 # Параметры подключения
 POSTGRES_PARAMS = {
-    "host": "localhost",
+    "host": os.getenv("POSTGRES_HOST", "localhost"),
     "port": 5432,
     "database": "dzen_db",
     "user": "postgres",
     "password": "1"
 }
-QDRANT_HOST = "localhost"
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = 6333
 YANDEX_FOLDER_ID = "b1gg1kh7b3mtup23kjbd"
 YANDEX_AUTH = "AQVNwg5-e736XnSpAvHuiVvIAJJQlBoqb0t1D1Jb"
 
-# Функция для обрезки текста до ~2000 токенов
 def truncate_text(text, max_words=1200):
     words = text.split()
     if len(words) > max_words:
@@ -28,7 +28,7 @@ def get_embedding(text, sdk):
     doc_model = sdk.models.text_embeddings("doc")
     truncated_text = truncate_text(text)
     result = doc_model.run(truncated_text)
-    return list(result.embedding)  # Замените на правильный атрибут после проверки
+    return list(result.embedding)
 
 def get_closest_articles(embedding, qdrant_client, collection_name="articles", limit=2):
     search_result = qdrant_client.query_points(
@@ -47,7 +47,7 @@ def generate_article(news_text, similar_texts, sdk):
     messages = [
         {
             "role": "system",
-            "text": "Ты — профессиональный журналист. Напиши новую статью, комбинируя информацию из предоставленной новости и двух похожих статей. Сохраняй стиль и тон оригиналов, добавляй свои детали для связности и уникальности. Результат должен быть логичным, интересным и не повторять дословно исходные тексты. Помни, что твоя задача — не просто склеить тексты, а создать новое произведение. Укажи места для вставки изображения." 
+            "text": "Ты — профессиональный журналист. Напиши новую статью, комбинируя информацию из предоставленной новости и двух похожих статей. Сохраняй стиль и тон оригиналов, добавляй свои детали для связности и уникальности. Результат должен быть логичным, интересным и не повторять дословно исходные тексты. Помни, что твоя задача — не просто склеить тексты, а создать новое произведение. Укажи места для вставки изображения."
         },
         {
             "role": "user",
@@ -65,21 +65,35 @@ def main():
     conn = psycopg2.connect(**POSTGRES_PARAMS)
     cursor = conn.cursor()
 
-    # Чтение входного текста из файла
-    with open("input_news.txt", "r", encoding="utf-8") as f:
-        news_text = f.read().strip()
+    print("Введите текст новости (для завершения ввода нажмите Enter дважды):")
+    news_lines = []
+    while True:
+        line = input()
+        if line == "":
+            if news_lines and news_lines[-1] == "":
+                break
+            news_lines.append("")
+        else:
+            news_lines.append(line)
+    news_text = "\n".join(news_lines).strip()
+
+    if not news_text:
+        print("Ошибка: текст новости не введен.")
+        cursor.close()
+        conn.close()
+        return
 
     # Вычисление эмбеддинга новости
     print("Computing embedding for input news...")
     news_embedding = get_embedding(news_text, sdk)
 
-    # Поиск двух ближайших статей в Qdrant
+    # Поиск ближайших статей в Qdrant
     print("Searching for similar articles in Qdrant...")
     similar_article_ids = get_closest_articles(news_embedding, qdrant_client)
     if len(similar_article_ids) < 2:
         print("Warning: Found fewer than 2 similar articles.")
         print(f"Similar articles found: {similar_article_ids}")
-    else:  
+    else:
         print(f"Found similar articles: {similar_article_ids}")
 
     # Извлечение текстов похожих статей из PostgreSQL
@@ -98,11 +112,10 @@ def main():
     else:
         generated_article = "Ошибка: недостаточно похожих статей для генерации."
 
-    # Запись результата в файл
-    with open("output_article.txt", "w", encoding="utf-8") as f:
-        f.write(generated_article.text)
-
-    print(f"Generated article saved to 'output_article.txt'. Processed {len(similar_texts)} similar articles.")
+    print("\nСгенерированная статья:")
+    print("-" * 50)
+    print(generated_article.text)
+    print("-" * 50)
 
     # Закрытие соединений
     cursor.close()

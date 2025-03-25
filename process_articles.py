@@ -3,7 +3,6 @@ import psycopg2
 from yandex_cloud_ml_sdk import YCloudML
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct
-import time
 from yandex_cloud_ml_sdk._exceptions import AioRpcError
 
 # Параметры подключения к PostgreSQL
@@ -47,14 +46,13 @@ for article_list in articles_yaml:
 
 conn.commit()
 
-# 2. Вычисление эмбеддингов с Yandex
+# 2. Вычисление эмбеддингов
 sdk = YCloudML(
     folder_id="b1gg1kh7b3mtup23kjbd",
     auth="AQVNwg5-e736XnSpAvHuiVvIAJJQlBoqb0t1D1Jb",
 )
 doc_model = sdk.models.text_embeddings("doc")
 
-# Функция для обрезки текста до ~2000 токенов
 def truncate_text(text, max_words=1200):
     words = text.split()
     if len(words) > max_words:
@@ -74,8 +72,7 @@ for article_id, text in article_ids:
         if "number of input tokens must be no more than" in str(e):
             print(f"Skipping article ID {article_id}: too many tokens after truncation ({e})")
         else:
-            raise  # Если ошибка не связана с токенами, прерываем выполнение
-    # time.sleep(0.5)
+            raise  
 
 # 3. Загрузка в Qdrant
 qdrant_client = QdrantClient("localhost", port=6333, timeout=30)

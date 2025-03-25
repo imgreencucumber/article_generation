@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import yaml
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -30,7 +30,7 @@ def create_driver():
     options.add_argument('--disable-images')
     options.add_argument('--disable-webgl')
     options.add_argument('--enable-unsafe-swiftshader')
-    options.add_argument('--ignore-certificate-errors')  # Игнорируем SSL-ошибки
+    options.add_argument('--ignore-certificate-errors')
     prefs = {"profile.managed_default_content_settings.images": 2}
     options.add_experimental_option("prefs", prefs)
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -169,7 +169,7 @@ def load_urls_from_file(filename):
         print(f"Ошибка: файл {filename} не найден.")
         sys.exit(1)
 
-def main(max_links=5000, max_workers=8, links_file=None):  # Увеличено до 8 потоков
+def main(max_links=5000, max_workers=4, links_file=None): 
     global stop_parsing
 
     if links_file:
